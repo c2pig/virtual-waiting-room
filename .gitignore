@@ -19,3 +19,4 @@ bin-release/
 
 .terraform*
 *.tfstate*
+node_modules/

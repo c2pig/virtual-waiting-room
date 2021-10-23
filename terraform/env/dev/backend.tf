@@ -2,11 +2,11 @@ terraform {
   required_providers {
     google = {
       source = "hashicorp/google"
-      version = "3.5.0"
+      version = "3.89.0"
     }
   }
   backend "gcs" {
-    credentials = "~/Downloads/green-torus-318407-e1fcb2f1be44.json"
+    credentials = "/Users/c2pig/Downloads/green-torus-318407-476eb19a6736.json"
     bucket = "waiting-room-tfstate"
     prefix = "env/development"
   }
