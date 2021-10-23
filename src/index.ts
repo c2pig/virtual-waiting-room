@@ -1,5 +1,13 @@
-import type { HttpFunction } from '@google-cloud/functions-framework/build/src/functions';
+import express from 'express';
+import { Request, Response } from 'express';
 
-export const helloWorld: HttpFunction = (req, res) => {
-  res.send('Hello, World');
-};
+export const app = express();
+const port: number = 80
+
+app.get('/', (req: Request, res: Response) => {
+  res.send('Hello World!')
+})
+
+app.listen(port, () => {
+  console.log(`Waiting Room listening at http://localhost:${port}`)
+})

@@ -2,7 +2,7 @@
   "name": "virtual-waiting-room",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "build/src/index.js",
   "scripts": {
     "start": "functions-framework --source=build/src/ --target=helloWorld",
     "watch": "concurrently \"tsc -w\" \"nodemon --watch ./build/ --exec npm run start\"",
