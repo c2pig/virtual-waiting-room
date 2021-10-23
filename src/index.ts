@@ -1,6 +1,6 @@
-import fastify from 'fastify';
+import express, { Request, Response } from 'express';
 
-const app = fastify({ logger: true })
+const app = express();
 
 const heroes = [
   { id: 1, name: 'Iron Man' },
@@ -9,20 +9,22 @@ const heroes = [
   { id: 4, name: 'Hulk' },
 ]
 
-app.get('/', async (req, res) => {
+app.get('/', async (req: Request, res: Response) => {
   return { works: true }
 })
 
-app.get('/heroes', async (req, res) => {
+app.get('/heroes', async (req: Request, res: Response) => {
   return heroes
 })
 
-app.get('/heroes/:id', async (req, res) => {
+app.get('/heroes/:id', async (req: Request, res: Response) => {
   const { id } = req.params
   return heroes.find((h) => h.id === Number(id))
 })
 
-exports.app = async (req, res) => {
-  await app.ready()
-  app.server.emit('request', req, res)
-}
+const port = 80;
+app.listen(port, () => {
+  console.log(`[Waiting Room Proxy] listening at http://localhost:${port}`)
+});
+
+exports.app = app;

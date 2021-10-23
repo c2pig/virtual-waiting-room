@@ -20,3 +20,4 @@ bin-release/
 .terraform*
 *.tfstate*
 node_modules/
+src/index.js
