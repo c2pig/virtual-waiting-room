@@ -21,3 +21,5 @@ bin-release/
 *.tfstate*
 node_modules/
 src/index.js
+build/
+*.log
