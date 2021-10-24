@@ -1,0 +1,22 @@
+{
+  "upstream": "",
+  "sessionTimeoutInMs": "",
+  "endSessionUrls": [
+    "/checkout",
+    "/thankyou"
+  ],
+  "byPassRules": [{
+    "name": "assets",
+    "url": "/assets"
+  }, {
+    "name": "url",
+    "url": "/xxx"
+  }, {
+    "name": "userAgent",
+    "ua": "GoogleBot*"
+  }, {
+    "name": "ipAnduserAgent",
+    "ua": "Mozilla*",
+    "ipCidr": "2.2.2.2/32"
+  }]
+ }

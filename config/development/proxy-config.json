@@ -1,0 +1,31 @@
+{
+  "upstreamMap": [{
+    "from": "/iphone",
+    "to": "https://www.celcom.com.my/personal/devices/iphone-13"
+  }, {
+    "from": "/",
+    "to": "http://iphone.celcom.com.my/mobile/apple/iphone13"
+  }, {
+    "from": "/js",
+    "to": "https://www.jobstreet.com.my"
+  }],
+  "sessionTimeoutInMs": 90000,
+  "endSessionUrls": [
+    "/checkout",
+    "/thankyou"
+  ],
+  "byPassRules": [{
+    "name": "assets",
+    "url": "/assets"
+  }, {
+    "name": "url",
+    "url": "/xxx"
+  }, {
+    "name": "userAgent",
+    "ua": "GoogleBot*"
+  }, {
+    "name": "ipAnduserAgent",
+    "ua": "Mozilla*",
+    "ipCidr": "2.2.2.2/32"
+  }]
+ }
