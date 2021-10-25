@@ -8,9 +8,11 @@ export interface IServingRoomOptions {
   inivitationTimeout: number;
 }
 
-export interface IAcceptOrWait {
-  accept: (queueId:number, currentTimestamp: number, expiredAfter: number) => {};
-  wait: (queueId: number) => {}
+export interface IRoomCallback {
+  accept: (queueId: number, currentTimestamp: number) => void;
+  invite: (queueId:number, currentTimestamp: number, expiredAfter: number) => void;
+  wait: (queueId: number) => void
+
 }
 
 interface IQueueOperation {
@@ -25,7 +27,7 @@ interface IQueryable {
 
 class TimeoutQueue implements IQueueOperation, IQueryable {
 
-  _queue: Map<number, number>;
+  private _queue: Map<number, number>;
 
   ttl: number;
 
@@ -58,8 +60,7 @@ class TimeoutQueue implements IQueueOperation, IQueryable {
 
 class ServingQueue implements IQueueOperation {
 
-  _counter: number = 0;
-  _queue: Map<number, number>;
+  private _queue: Map<number, number>;
 
   constructor() {
     this._queue = new Map();
@@ -105,13 +106,13 @@ class TicketIssuer {
 */
 export default class ServingRoom {
 
-  _servingQueue: ServingQueue = new ServingQueue();
-  _ticketIssuer: TicketIssuer = new TicketIssuer();
-  _invitations: TimeoutQueue; 
-  _freeCapacityBuffer: number = 0;
+  private _servingQueue: ServingQueue = new ServingQueue();
+  private _ticketIssuer: TicketIssuer = new TicketIssuer();
+  private _invitations: TimeoutQueue; 
+  private _freeCapacityBuffer: number = 0;
 
-  capacity: number;
-  invitationTimeout: number;
+  private capacity: number;
+  private invitationTimeout: number;
 
   constructor(options: IServingRoomOptions) {
     this.capacity = options.servingCapacity;
@@ -127,12 +128,36 @@ export default class ServingRoom {
     this._ticketIssuer.surrender(queueId);
   }
 
-  checkIn(queueId: number, cb: IAcceptOrWait) {
-    if(!queueId) {
+  checkIn(queueId: number| null, cb: IRoomCallback) {
+    let qId = queueId;
+
+    if(!qId) {
+      qId = this._ticketIssuer.issue();
+    }
+
+    if((this._servingQueue.len() + this._invitations.len()) < this.capacity) {
+      const ts = new Date().getTime();
+      log.debug(`invite ${qId} to serving room`); 
+      this._invitations.push(qId, (id) => {
+        log.debug(`${id} invitation has expired`); 
+      });
+      cb.invite(qId, ts, ts + this.invitationTimeout);
+    } else if(this._invitations.has(qId)) {
+      log.debug(`${queueId} accepted invitation`); 
+      cb.accept(qId, new Date().getTime());
+      this._servingQueue.push(qId);
+    } else {
+      cb.wait(qId);
+    }
+  }
+
+  checkIn1(queueId: number, cb: IRoomCallback) {
+    if(!queueId || queueId === -1) {
       cb.wait(this._ticketIssuer.issue());
     } else {
       if(this._invitations.has(queueId)) {
         log.debug(`${queueId} accepted invitation`); 
+        cb.accept(queueId, new Date().getTime());
         this._servingQueue.push(queueId);
       } else if((this._servingQueue.len() + this._invitations.len()) < this.capacity) {
       /*
@@ -144,7 +169,7 @@ export default class ServingRoom {
         this._invitations.push(queueId, (id) => {
           log.debug(`${id} invitation has expired`); 
         });
-        cb.accept(queueId, ts, ts + this.invitationTimeout);
+        cb.invite(queueId, ts, ts + this.invitationTimeout);
       } else {
         cb.wait(queueId);
       }

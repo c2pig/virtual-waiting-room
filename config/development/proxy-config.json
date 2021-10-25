@@ -1,7 +1,7 @@
 {
   "serverPort": 80,
-  "servingRoomCapacity": 100,
-  "joinTimeoutInMin": 6000,
+  "servingRoomCapacity": 5,
+  "joinTimeoutInMin": 0.5,
   "waitingRoomValidityInHour": 24,
   "sessionTimeoutInMin": 10,
   "upstreamMap": [{
@@ -23,13 +23,13 @@
   ],
   "byPassRules": [{
     "name": "assets",
-    "url": "/assets"
+    "urlPattern": "/.(css|js|jpg)$/i"
   }, {
     "name": "url",
-    "url": "/xxx"
+    "urlPattern": "/xxx"
   }, {
     "name": "userAgent",
-    "ua": "GoogleBot*"
+    "uaPattern": "GoogleBot*"
   }, {
     "name": "ipAnduserAgent",
     "ua": "Mozilla*",

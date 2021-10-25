@@ -22,9 +22,9 @@ interface IProxyConfigEnv {
 
 interface IByPassRuleEntry {
   name: string;
-  url?: string;
+  urlPattern?: string;
   ipCidr?: string;
-  ua?: string;
+  uaPattern?: string;
 }
 
 export interface IProxyConfig extends IProxyConfigEnv {
