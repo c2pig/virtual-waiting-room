@@ -1,19 +1,35 @@
 {
-  "upstream": "",
-  "sessionTimeoutInMs": "",
+  "serverPort": 80,
+  "servingRoomCapacity": 5,
+  "joinTimeoutInMin": 0.5,
+  "waitingRoomValidityInHour": 24,
+  "sessionTimeoutInMin": 10,
+  "upstreamMap": [{
+    "from": "/iphone13",
+    "to": "https://business.celcom.com.my/mobile/apple"
+  }, {
+    "from": "/local",
+    "to": "http://localhost:8888/mobile/apple/iphone13"
+  }, {
+    "from": "/",
+    "to": "https://business.celcom.com.my/"
+  }, {
+    "from": "/js",
+    "to": "https://www.jobstreet.com.my"
+  }],
   "endSessionUrls": [
     "/checkout",
     "/thankyou"
   ],
   "byPassRules": [{
     "name": "assets",
-    "url": "/assets"
+    "urlPattern": "/.(css|js|jpg)$/i"
   }, {
     "name": "url",
-    "url": "/xxx"
+    "urlPattern": "/xxx"
   }, {
     "name": "userAgent",
-    "ua": "GoogleBot*"
+    "uaPattern": "GoogleBot*"
   }, {
     "name": "ipAnduserAgent",
     "ua": "Mozilla*",

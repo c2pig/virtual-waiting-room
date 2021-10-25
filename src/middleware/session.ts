@@ -2,39 +2,58 @@ import { Request, Response, NextFunction } from "express";
 import ServingRoom from "../serving-room";
 import { loadConfig } from '../configuration';
 import ipRangeCheck from 'ip-range-check';
-
+import logger from '../logger';
 const config = loadConfig();
 
 interface IByPassRules {
   name: string;
-  conditions: ((test: string) => Boolean)[];
+  headerCheck?: ((test: string) => boolean);
+  ipCheck?: ((test: string) => boolean);
+  pathCheck?: ((test: string) => boolean);
 }
 
+const log = logger('session');
+
 const byPassRules: IByPassRules[] = config.byPassRules().map(({urlPattern, uaPattern, ipCidr, name}) => {
-  const conditions = [];
+  let headerCheck, ipCheck, pathCheck;
+
   if(urlPattern) {
-    conditions.push((test: string) => new RegExp(urlPattern ?? "").test(test));
+    pathCheck = (test: string) => new RegExp(urlPattern ?? "", "i").test(test);
   }
   if(uaPattern) {
-    conditions.push((test: string) => new RegExp(uaPattern ?? "").test(test));
+    headerCheck = (test: string) => new RegExp(uaPattern ?? "", "i").compile().test(test);
   }
   if(ipCidr) {
-    conditions.push((test: string) => ipRangeCheck(test, ipCidr ?? ""));
+    ipCheck = (test: string) => ipRangeCheck(test, ipCidr ?? "");
   }
   return {
     name,
-    conditions
+    headerCheck,
+    ipCheck,
+    pathCheck
   }
 });
 
+const noop = () => (true);
+
 const requestBypass = (req: Request): Boolean => {
-  let toBypass = true;
+  let toBypass = false;
+  //@ts-ignore
+  byPassRules.forEach(({name, headerCheck = noop, ipCheck = noop, pathCheck = noop}) => {
+    toBypass = headerCheck(req.headers["user-agent"] ?? '')
+     && ipCheck(req.ip)
+     && pathCheck(req.path);
+
+    if(toBypass === true) {
+      return true
+    }
+  }) 
   return toBypass;
 }
 
 export interface IRoomPass {
-  queuedAt?: number; // non-exist, when a visitor does not need to queue
-  acceptedAt?: number; // non-exist, user does not accept invitation in waiting room when is their turn
+  queuedAt?: number; 
+  acceptedAt?: number; 
   queueId?: number;
   invitedAt?: number;
   retry: number;
@@ -44,7 +63,7 @@ export const endSession = () => {
 }
 
 const onWait = (req: Request) => (queueId: number) => {
-  console.log(`----- wait(${queueId}) ---`);
+  log.debug(`wait(${queueId})`);
   if(req.session.roomPass?.queueId) {
     req.session.roomPass.retry++;
   } else {
@@ -57,7 +76,7 @@ const onWait = (req: Request) => (queueId: number) => {
 }
 
 const onInvitation = (req: Request) => (queueId: number, currTs: number, expiredAfter: number) => {
-  console.log(`----- invite(${queueId}) ----`);
+  log.debug(`invite(${queueId})`);
   if(req.session.roomPass) {
     req.session.roomPass.queueId = queueId;
     req.session.roomPass.invitedAt = currTs;
@@ -66,7 +85,7 @@ const onInvitation = (req: Request) => (queueId: number, currTs: number, expired
 }
 
 const onAccept = (req: Request) => (queueId: number, currTs: number) => {
-  console.log(`----- accept(${queueId}) ----`);
+  log.debug(`accept(${queueId})`);
   const { retry = 0, queuedAt = currTs } = req.session.roomPass || {};
   req.session.roomPass = {
     queueId,
@@ -80,7 +99,7 @@ const onAccept = (req: Request) => (queueId: number, currTs: number) => {
 export const checkSession = (room: ServingRoom) => async(req: Request, res: Response, next: NextFunction) => {
 
   if(! requestBypass(req)) {
-    console.log(`----- check waiting room (${req.path}) ---`);
+    log.debug(`check waiting room (${req.path})`);
     const queueId = req.session.roomPass?.queueId ?? null;
     room.checkIn(queueId, {
       wait: onWait(req),

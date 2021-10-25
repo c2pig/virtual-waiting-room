@@ -1,7 +1,7 @@
 import logger from './logger';
 
 const noop = () => {}
-const log = logger('room');
+const log = logger('queue');
 
 export interface IServingRoomOptions {
   servingCapacity: number;

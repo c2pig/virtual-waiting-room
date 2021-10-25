@@ -1,18 +1,15 @@
 import log from 'util';
 
-const logger = (namespace: string = "app") => {
+const logger = (namespace: string = "unknown") => {
   return {
     debug: (msg: string) => {
-      console.log(msg);
-      log.debuglog(`all-${namespace}-debug`)(msg);
+      log.debuglog(`app.${namespace}.debug`)(msg);
     },
     info: (msg: string) => {
-      console.log(msg);
-      log.debuglog(`all-${namespace}-info`)(msg);
+      log.debuglog(`app.${namespace}.info`)(msg);
     },
     error: (msg: string) => {
-      console.log(msg);
-      log.debuglog(`all-${namespace}-error`)(msg);
+      log.debuglog(`app.${namespace}.error`)(msg);
     }
   }
 }
