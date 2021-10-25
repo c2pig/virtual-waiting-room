@@ -2,17 +2,47 @@ import express from 'express';
 import { createProxyMiddleware } from 'http-proxy-middleware';
 import { loadConfig } from './configuration';
 import { getStockAvailability } from './fake/stocks';
+import { checkSession, IWaitingRoom } from './middleware/session';
+import session, { Store } from 'express-session';
+import cookieParser from 'cookie-parser';
+import logger from './logger';
+import ServingRoom from './serving-room';
 
-export const app = express();
+declare module 'express-session' {
+  export interface SessionData {
+    vwr: IWaitingRoom;
+  }
+}
+
+declare module 'express' {
+  export interface Request {
+    sessionStore: Store;
+  }
+}
+
+const app = express();
+const log = logger('main');
 const config = loadConfig();
-
-const port: number = 80;
+const room = new ServingRoom({
+  servingCapacity: config.servingRoomCapacity(),
+  inivitationTimeout: config.joinTimeoutInMin(60) 
+});
 const upstreamMap = config.upstreamMap();
 
+app.use(cookieParser());
+app.use(session({
+  name: `_vwr_${config.appName()}`, 
+  secret: config.signedSecret(),
+  cookie: { maxAge: config.waitingRoomValidityInHour(60 * 60) },
+}));
+
+// @ts-ignore
+app.use('/', checkSession(room))
+// @ts-ignore
 app.get('/v1/stocks', getStockAvailability);
 
 upstreamMap.forEach(({from, to}) => {
-  console.log(`[Proxy] ${from} -> ${to}`);
+  log.info(`[Proxy] ${from} -> ${to}`);
   app.use(from, createProxyMiddleware({ 
     logLevel: 'debug',
     changeOrigin: true,
@@ -20,39 +50,6 @@ upstreamMap.forEach(({from, to}) => {
   }));
 }) 
 
-
-// app.get('/', (req: Request, res: Response) => {
-
-// ballot = ticket no, curr running num, hash key, timestamp
-// session = ballot hash key,   
-
-  // does session cookie exist?
-  //   - yes
-  //     proxy_pass
-  //   - no
-      // does ballot cookie exist?
-      //   - yes
-      //     - is ballot valid?
-      //       - yes
-      //         is ballot eligible visit?
-      //         - yes
-      //           create session (ballot) - redis + cookie
-      //           decrease waiting count
-      //           proxy_pass
-      //         - no
-      //           redirect to waiting room
-      //       - no 
-      //         issue new ballot
-      //         increase waiting count
-      //         redirect to waiting room
-      //   - no
-      //         issue new ballot
-      //         increase waiting count
-      //         redirect to waiting room
-
-//   res.send('Hello World!')
-// })
-
-app.listen(port, () => {
-  console.log(`Waiting Room listening at http://localhost:${port}`)
+app.listen(config.serverPort(), () => {
+  log.info(`Waiting Room listening at http://localhost:${config.serverPort()}`);
 })

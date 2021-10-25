@@ -1,8 +1,12 @@
 interface IProxyConfigReader {
   upstreamMap: IUpstreamMap[];
-  sessionTimeoutInMs: number;
+  sessionTimeoutInMin: number;
   endSessionUrls: string[];
   byPassRules: IByPassRuleEntry[];
+  waitingRoomValidityInHour: number;
+  serverPort: number;
+  servingRoomCapacity: number;
+  joinTimeoutInMin: number;
 }
 
 interface IUpstreamMap {
@@ -12,6 +16,8 @@ interface IUpstreamMap {
 
 interface IProxyConfigEnv {
   redisAddress: () => string;
+  signedSecret: () => string;
+  appName: () => string;
 }
 
 interface IByPassRuleEntry {
@@ -23,9 +29,13 @@ interface IByPassRuleEntry {
 
 export interface IProxyConfig extends IProxyConfigEnv {
   upstreamMap: () => IUpstreamMap[];
-  sessionTimeoutInMs:() => number;
+  sessionTimeoutInMin:(minUnit?: number) => number;
   endSessionUrls: () => string[];
   byPassRules: () => IByPassRuleEntry[];
+  waitingRoomValidityInHour: (hourUnit?: number) => number;
+  serverPort: () => number;
+  servingRoomCapacity: () => number;
+  joinTimeoutInMin: (minUnit?: number) => number;
 } 
 
 export const loadConfig = (): IProxyConfig => {
@@ -36,9 +46,21 @@ export const loadConfig = (): IProxyConfig => {
 
   return {
     upstreamMap: () => (config.upstreamMap),
-    sessionTimeoutInMs: () => (config.sessionTimeoutInMs),
+    sessionTimeoutInMin: (minUnit: number = 1) => (config.sessionTimeoutInMin * minUnit),
     endSessionUrls: () => (config.endSessionUrls),
     byPassRules: () => (config.byPassRules),
-    redisAddress: () => (`process.env.REDIS_HOST:process.env.REDIS_PORT` ?? "localhost:6379")
+    waitingRoomValidityInHour: (hourUnit: number = 1) => (config.waitingRoomValidityInHour * hourUnit),
+    serverPort: () => (config.serverPort),
+    servingRoomCapacity: () => (config.servingRoomCapacity),
+    joinTimeoutInMin: (minUnit: number = 1) => (config.joinTimeoutInMin * minUnit),
+    redisAddress: () => (
+      process.env.NODE_ENV === "development" ? 
+        "localhost:6379" : `${process.env.REDIS_HOST}:${process.env.REDIS_PORT}`
+    ),
+    signedSecret: () => (
+      process.env.NODE_ENV === "development" ? 
+        "onefineday" : `${process.env.SIGNED_SECRET}`
+    ),
+    appName: () => (require(path.join(__dirname, '../', 'package.json')).name),
   }
 };

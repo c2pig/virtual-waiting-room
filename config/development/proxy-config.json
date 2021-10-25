@@ -1,15 +1,22 @@
 {
+  "serverPort": 80,
+  "servingRoomCapacity": 100,
+  "joinTimeoutInMin": 6000,
+  "waitingRoomValidityInHour": 24,
+  "sessionTimeoutInMin": 10,
   "upstreamMap": [{
-    "from": "/iphone",
-    "to": "https://www.celcom.com.my/personal/devices/iphone-13"
+    "from": "/iphone13",
+    "to": "https://business.celcom.com.my/mobile/apple"
+  }, {
+    "from": "/local",
+    "to": "http://localhost:8888/mobile/apple/iphone13"
   }, {
     "from": "/",
-    "to": "http://iphone.celcom.com.my/mobile/apple/iphone13"
+    "to": "https://business.celcom.com.my/"
   }, {
     "from": "/js",
     "to": "https://www.jobstreet.com.my"
   }],
-  "sessionTimeoutInMs": 90000,
   "endSessionUrls": [
     "/checkout",
     "/thankyou"
