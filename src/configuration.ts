@@ -13,7 +13,9 @@ interface ISessionConfig {
 }
 
 interface IWaitingRoomConfig {
+  page: string;
   errorPage: string;
+  redirectToUpstream: string;
   joinTimeoutInMin: number;
   validityInHour: number;
 }
@@ -47,6 +49,8 @@ export interface IProxyConfig extends IProxyConfigEnv {
   servingRoomCapacity: () => number;
   joinTimeoutInMin: (minUnit?: number) => number;
   errorPage: () => string;
+  waitingRoomPage: () => string;
+  redirectToUpstream: () => string;
 } 
 
 export const loadConfig = (): IProxyConfig => {
@@ -74,5 +78,7 @@ export const loadConfig = (): IProxyConfig => {
     ),
     appName: () => (require(path.join(__dirname, '../', 'package.json')).name),
     errorPage: () => (config.waitingRoom.errorPage),
+    waitingRoomPage: () => (config.waitingRoom.page),
+    redirectToUpstream: () => (config.waitingRoom.redirectToUpstream)
   }
 };

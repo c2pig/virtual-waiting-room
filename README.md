@@ -20,10 +20,6 @@ Turn on all level/module logging
 NODE_DEBUG=app.*
 ```
 
-### TODO:
-* enter Waiting room page
-* exit waiting room 
-* Exit session
-* stats endpoint
-* redirect to error page
-* support distributed system
+### Task:
+* Distributed Session Store
+* Session Exit
