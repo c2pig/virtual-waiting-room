@@ -85,7 +85,6 @@ app.get('/v1/invitations', (req: Request, res: Response) => {
       const now = new Date().getTime()
       const invitationTimeout = expiredAfter - now;
       const bufferTime = 10 * 1000
-      console.log(invitationTimeout);
       return res.json({
         ticketNumber: queueId,
         invitationTimeout,
@@ -95,9 +94,7 @@ app.get('/v1/invitations', (req: Request, res: Response) => {
       room.checkIn(queueId, {
         wait: noop,
         invite: onInvitation(req, res, () => {}),
-        accept: onAccept(req, res, () => {
-          console.log("do nothing");
-        })
+        accept: onAccept(req, res, () => { })
       })
     } else {
       room.checkIn(queueId, {
