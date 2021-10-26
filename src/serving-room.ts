@@ -135,44 +135,19 @@ export default class ServingRoom {
       qId = this._ticketIssuer.issue();
     }
 
-    if((this._servingQueue.len() + this._invitations.len()) < this.capacity) {
+    if(this._invitations.has(qId)) {
+      log.debug(`${queueId} accepted invitation`);
+      cb.accept(qId, new Date().getTime());
+      this._servingQueue.push(qId);
+    } else if((this._servingQueue.len() + this._invitations.len()) < this.capacity) {
       const ts = new Date().getTime();
       log.debug(`invite ${qId} to serving room`); 
       this._invitations.push(qId, (id) => {
         log.debug(`${id} invitation has expired`); 
       });
       cb.invite(qId, ts, ts + this.invitationTimeout);
-    } else if(this._invitations.has(qId)) {
-      log.debug(`${queueId} accepted invitation`); 
-      cb.accept(qId, new Date().getTime());
-      this._servingQueue.push(qId);
     } else {
       cb.wait(qId);
-    }
-  }
-
-  checkIn1(queueId: number, cb: IRoomCallback) {
-    if(!queueId || queueId === -1) {
-      cb.wait(this._ticketIssuer.issue());
-    } else {
-      if(this._invitations.has(queueId)) {
-        log.debug(`${queueId} accepted invitation`); 
-        cb.accept(queueId, new Date().getTime());
-        this._servingQueue.push(queueId);
-      } else if((this._servingQueue.len() + this._invitations.len()) < this.capacity) {
-      /*
-        TODO: how to safely ensure serverQueue does not overflow?
-          - maybe safetyBuffer?
-      */
-        const ts = new Date().getTime();
-        log.debug(`invite ${queueId} to serving room`); 
-        this._invitations.push(queueId, (id) => {
-          log.debug(`${id} invitation has expired`); 
-        });
-        cb.invite(queueId, ts, ts + this.invitationTimeout);
-      } else {
-        cb.wait(queueId);
-      }
     }
   }
 

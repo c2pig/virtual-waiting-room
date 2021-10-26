@@ -50,10 +50,12 @@ export const getStockAvailability = async(
   ) => {
   try {
     res.json({
-      [Model.iPhone13Mini]: getStockAvailabilityByModel(Model.iPhone13Mini),
-      [Model.iPhone13]: getStockAvailabilityByModel(Model.iPhone13),
-      [Model.iPhone13Pro]: getStockAvailabilityByModel(Model.iPhone13Pro),
-      [Model.iPhone13ProMax]: getStockAvailabilityByModel(Model.iPhone13ProMax)
+      data:[ 
+        getStockAvailabilityByModel(Model.iPhone13Mini),
+        getStockAvailabilityByModel(Model.iPhone13),
+        getStockAvailabilityByModel(Model.iPhone13Pro),
+        getStockAvailabilityByModel(Model.iPhone13ProMax)
+      ]
     });
   } catch(e) {
     console.log(e);

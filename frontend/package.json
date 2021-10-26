@@ -1,0 +1,50 @@
+{
+  "name": "virtual-waiting-room",
+  "private": true,
+  "version": "0.1.0",
+  "dependencies": {
+    "@material-ui/core": "^4.12.3",
+    "@material-ui/styles": "^4.11.4",
+    "axios": "^0.21.4",
+    "gatsby": "^3.13.1",
+    "gatsby-plugin-react-helmet": "^4.13.0",
+    "gatsby-plugin-sharp": "^3.13.0",
+    "gatsby-source-filesystem": "^3.13.0",
+    "gatsby-transformer-sharp": "^3.13.0",
+    "prop-types": "^15.7.2",
+    "query-string": "^7.0.1",
+    "react": "^17.0.1",
+    "react-cookie": "^4.1.1",
+    "react-dom": "^17.0.1",
+    "react-helmet": "^6.1.0",
+    "uuid": "^8.3.2"
+  },
+  "devDependencies": {
+    "@emotion/react": "^11.4.1",
+    "@emotion/styled": "^11.3.0",
+    "@material-ui/icons": "^4.11.2",
+    "@material-ui/lab": "^4.0.0-alpha.60",
+    "@mui/icons-material": "^5.0.1",
+    "@mui/material": "^5.0.1",
+    "prettier": "2.4.1"
+  },
+  "keywords": [
+    "gatsby"
+  ],
+  "license": "0BSD",
+  "scripts": {
+    "build": "BUILD_ENV=production gatsby build --prefix-paths",
+    "develop": "BUILD_ENV=development gatsby develop",
+    "format": "prettier --write \"**/*.{js,jsx,ts,tsx,json,md}\"",
+    "start": "BUILD_ENV=development  gatsby develop",
+    "serve": "gatsby serve --prefix-paths",
+    "clean": "gatsby clean"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/gatsbyjs/gatsby-starter-default"
+  },
+  "bugs": {
+    "url": "https://github.com/gatsbyjs/gatsby/issues"
+  }
+}

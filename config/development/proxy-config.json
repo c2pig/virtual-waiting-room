@@ -9,30 +9,42 @@
     ]
   },
   "waitingRoom": {
+    "page": "http://iphone.celcom.com.my:8000/room/",
     "errorPage": "https://www.google.com",
     "validityInHour": 24,
-    "joinTimeoutInMin": 1
+    "joinTimeoutInMin": 1,
+    "redirectToUpstream": "http://iphone.celcom.com.my"
   },
-  "upstreamMap": [{
-    "name": "testing1",
-    "from": "/iphone13",
-    "to": "https://business.celcom.com.my/mobile/apple"
-  }, {
-    "name": "local-test",
-    "from": "/local",
-    "to": "http://localhost:8888/mobile/apple/iphone13"
-  }, {
-    "name": "main",
-    "from": "/",
-    "to": "https://business.celcom.com.my/"
-  }, {
-    "name": "testing2",
-    "from": "/js",
-    "to": "https://www.jobstreet.com.my"
-  }],
+  "upstreamMap": [
+  {
+      "name": "waiting room",
+      "from": "/room",
+      "to": "http://iphone.celcom.com.my:8000/"
+   }, {
+     "name": "testing1",
+     "from": "/iphone13",
+     "to": "https://business.celcom.com.my/mobile/apple"
+   }, {
+     "name": "protected event site",
+     "from": "/",
+     "to": "https://business.celcom.com.my/"
+   }, {
+     "name": "testing for bypass",
+     "from": "/home",
+     "to": "https://business.celcom.com.my/home"
+   }],
 
   "byPassRules": [{
     "name": "assets file extension",
-    "urlPattern": "(css|js|jpg|svg|jpeg|jpg|webp|png|gif|map|ico)$"
+    "urlPattern": "(css|js|jpg|svg|jpeg|jpg|webp|png|gif|map|ico|json)$"
+  }, {
+    "name": "endpoints",
+    "urlPattern": "/v1/(stocks|stats|invitations|rejections)$"
+  }, {
+    "name": "home for testing",
+    "urlPattern": "/(home)$"
+  }, {
+    "name": "waiting room",
+    "urlPattern": "/(room)$"
   }]
  }

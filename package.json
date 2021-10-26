@@ -8,12 +8,8 @@
     "watch": "concurrently \"tsc -w\" \"nodemon --watch ./build/ --exec npm run start\"",
     "dev:deploy": "yarn build && cd terraform/env/dev/ && terraform init && terraform apply -auto-approve",
     "build": "tsc",
-    "test": "echo \"Error: no test specified\" && exit 1",
     "lint": "gts lint",
-    "clean": "gts clean",
-    "compile": "tsc",
-    "fix": "gts fix",
-    "posttest": "yarn run lint"
+    "compile": "tsc"
   },
   "author": "",
   "license": "ISC",
