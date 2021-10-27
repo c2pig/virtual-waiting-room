@@ -6,7 +6,7 @@ terraform {
     }
   }
   backend "gcs" {
-    credentials = "/Users/c2pig/Downloads/green-torus-318407-476eb19a6736.json"
+    credentials = "__REPLACE_IT_WITH_CREDENTIAL_FILE__"
     bucket = "waiting-room-tfstate"
     prefix = "env/development"
   }
