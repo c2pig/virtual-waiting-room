@@ -6,7 +6,7 @@ import { checkSession } from './middleware/session';
 import session from 'express-session';
 import cookieParser from 'cookie-parser';
 import logger from './logger';
-import ServingRoom from './serving-room';
+import Concierge from './concierge';
 import cors from 'cors';
 import { hasAccepted, hasInvited, IRoomPass, noop, onAccept, onInvitation } from './common';
 
@@ -19,7 +19,7 @@ declare module 'express-session' {
 const app = express();
 const log = logger('main');
 const config = loadConfig();
-const room = new ServingRoom({
+const concierge = new Concierge({
   servingCapacity: config.servingRoomCapacity(),
   inivitationTimeout: config.joinTimeoutInMin(60 * 1000) 
 });
@@ -30,7 +30,7 @@ app.use(cors({
   origin: (origin, cb) => {
     cb(null, true);
   },
-  methods: ['GET', 'OPTION', 'POST'],
+  methods: ['GET', 'DELETE', 'OPTION'],
   credentials: true 
 }));
 app.use(cookieParser());
@@ -45,11 +45,14 @@ app.use(session({
 }));
 
 // @ts-ignore
-app.use('/', checkSession(room))
+app.use('/', checkSession(concierge))
+
+
 // @ts-ignore
 app.get('/v1/stocks', getStockAvailability);
 
-app.get('/v1/rejections', (req, res) => {
+app.delete('/v1/invitations', (req, res) => {
+  console.log('----- delete session -----');
   req.session.destroy(() => {
     res.json({});
   });
@@ -58,9 +61,9 @@ app.get('/v1/rejections', (req, res) => {
 app.get('/v1/stats', (req: Request, res: Response) => {
   let eta = {};
   const queueId = req.session?.roomPass?.queueId;
-  const numberOfWaiting = (room.runningAt() - room.servingAt());
-  if(queueId && queueId >= room.servingAt()) {
-    const numberOfAhead = (queueId - room.servingAt());
+  const numberOfWaiting = (concierge.runningAt() - concierge.servingAt());
+  if(queueId && queueId >= concierge.servingAt()) {
+    const numberOfAhead = (queueId - concierge.servingAt());
     eta = {
      estimatedEarlyTimeMinute: numberOfAhead * (config.sessionTimeoutInMin() * 0.3),
      estimatedLateTimeMinute: numberOfAhead * (config.sessionTimeoutInMin() * 0.7),
@@ -70,8 +73,8 @@ app.get('/v1/stats', (req: Request, res: Response) => {
   }
 
   res.json({
-    total: room.runningAt(),
-    lastServedTicketNumber: room.servingAt(),
+    total: concierge.runningAt(),
+    lastServedTicketNumber: concierge.servingAt(),
     numberOfWaiting,
     ...eta
   });
@@ -91,13 +94,13 @@ app.get('/v1/invitations', (req: Request, res: Response) => {
         invited: (invitationTimeout >= bufferTime)
       })
     } else if(hasInvited(req)) {
-      room.checkIn(queueId, {
+      concierge.checkIn(queueId, {
         wait: noop,
         invite: onInvitation(req, res, () => {}),
         accept: onAccept(req, res, () => { })
       })
     } else {
-      room.checkIn(queueId, {
+      concierge.checkIn(queueId, {
         wait: noop,
         invite: onInvitation(req, res, () => {}),
         accept: noop

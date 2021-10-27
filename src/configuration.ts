@@ -56,7 +56,7 @@ export interface IProxyConfig extends IProxyConfigEnv {
 export const loadConfig = (): IProxyConfig => {
   
   const path = require('path');
-  const configPath = `config/${process.env.NODE_ENV ?? "default"}/proxy-config.json`;
+  const configPath = `config/${process.env.NODE_ENV ?? "default"}/config.json`;
   const config: IProxyConfigReader = require(path.join(__dirname, '../', configPath));
 
   return {
