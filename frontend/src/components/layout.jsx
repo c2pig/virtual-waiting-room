@@ -2,8 +2,8 @@ import * as React from "react"
 import PropTypes from "prop-types"
 import { useStaticQuery, graphql } from "gatsby"
 import Box from '@mui/material/Box';
-import Header from "./header"
-import "./layout.css"
+import Header from "./Header"
+import "./Layout.css"
 
 const Layout = ({ children }) => {
   const data = useStaticQuery(graphql`

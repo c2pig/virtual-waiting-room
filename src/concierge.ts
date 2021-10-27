@@ -3,7 +3,7 @@ import logger from './logger';
 const noop = () => {}
 const log = logger('queue');
 
-export interface IServingRoomOptions {
+export interface IConciergeOptions {
   servingCapacity: number;
   inivitationTimeout: number;
 }
@@ -104,7 +104,7 @@ class TicketIssuer {
 /* 
   TODO: enable distributed queue and in-memory queue
 */
-export default class ServingRoom {
+export default class Concierge {
 
   private _servingQueue: ServingQueue = new ServingQueue();
   private _ticketIssuer: TicketIssuer = new TicketIssuer();
@@ -114,7 +114,7 @@ export default class ServingRoom {
   private capacity: number;
   private invitationTimeout: number;
 
-  constructor(options: IServingRoomOptions) {
+  constructor(options: IConciergeOptions) {
     this.capacity = options.servingCapacity;
     this.invitationTimeout = options.inivitationTimeout ?? (60 * 1000);
     this._invitations = new TimeoutQueue(this.invitationTimeout);
@@ -149,6 +149,10 @@ export default class ServingRoom {
     } else {
       cb.wait(qId);
     }
+  }
+
+  isInvited = (queueId: number) => {
+    return this._invitations.has(queueId);
   }
 
   servingAt(): number {

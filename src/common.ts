@@ -29,7 +29,7 @@ export const upsertRoomPass = (roomPass: IRoomPass) => async (req: Request) => {
 
 export const onWait = (req: Request, res: Response) => (queueId: number) => {
   log.debug(`wait(${queueId})`);
-  const doRedirect = (data: unknown) => { 
+  const doRedirect = () => { 
     res.redirect(`${config.waitingRoomPage()}`);
   }
   if(req.session.roomPass?.queueId) {
@@ -48,6 +48,7 @@ export const onWait = (req: Request, res: Response) => (queueId: number) => {
 export const onInvitation = (req: Request, res: Response, postInvite?: () => void) => (queueId: number, currTs: number, expiredAfter: number) => {
   log.debug(`invite(${queueId})`);
   const postAction = postInvite ? postInvite : () => {
+    req.session.cookie.maxAge = config.joinTimeoutInMin(60 * 1000)
     res.redirect(`${config.waitingRoomPage()}`);
   }
   upsertRoomPass({
@@ -62,7 +63,7 @@ export const onAccept = (req: Request, res: Response, postAccept?: () => void) =
   log.debug(`accept(${queueId})`);
   const { retry = 0, queuedAt = currTs } = req.session.roomPass || {};
   const postAction = postAccept ? postAccept : () => {
-    req.session.cookie.expires = new Date(currTs + config.sessionTimeoutInMin(60 * 1000));
+    req.session.cookie.maxAge = config.sessionTimeoutInMin(60 * 1000);
     res.redirect( config.redirectToUpstream());
   }
   upsertRoomPass({
