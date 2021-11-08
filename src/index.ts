@@ -21,7 +21,7 @@ const log = logger('main');
 const config = loadConfig();
 const concierge = new Concierge({
   servingCapacity: config.servingRoomCapacity(),
-  inivitationTimeout: config.joinTimeoutInMin(60 * 1000) 
+  inivitationTimeout: config.joinTimeoutInMin(60 * 1000),
 });
 const upstreamMap = config.upstreamMap();
 
@@ -58,12 +58,12 @@ app.delete('/v1/invitations', (req, res) => {
   });
 });
 
-app.get('/v1/stats', (req: Request, res: Response) => {
+app.get('/v1/stats', async (req: Request, res: Response) => {
   let eta = {};
   const queueId = req.session?.roomPass?.queueId;
-  const numberOfWaiting = (concierge.runningAt() - concierge.servingAt());
-  if(queueId && queueId >= concierge.servingAt()) {
-    const numberOfAhead = (queueId - concierge.servingAt());
+  const numberOfWaiting = (await concierge.runningAt() - await concierge.servingAt());
+  if(queueId && queueId >= await concierge.servingAt()) {
+    const numberOfAhead = (queueId - await concierge.servingAt());
     eta = {
      estimatedEarlyTimeMinute: numberOfAhead * (config.sessionTimeoutInMin() * 0.3),
      estimatedLateTimeMinute: numberOfAhead * (config.sessionTimeoutInMin() * 0.7),
