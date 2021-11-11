@@ -1,10 +1,11 @@
 import logger from './logger';
-import { Indexable, Store, Counter, ICounterOperation, QueryableStore } from './store/Store';
+import { Store, QueryableStore, TransactionalStore } from './store/Store';
 import { promisify } from 'util';
 import { MemoryStore, QueryStore as MemoryQueryStore } from './store/MemoryStore';
 import { QueryStore as RedisQueryStore} from './store/RedisStore';
 import { RedisClient } from 'redis';
 import RedisStore from './store/RedisStore';
+import { Counter, ICounterOperation, MemoryCounter, RedisCounter } from './store/Counter';
 
 const noop = () => {}
 const log = logger('queue');
@@ -99,15 +100,17 @@ class TicketCounter {
   }
 
   async count() {
-    return this._counter.incr();
+    const count = await this._counter.incr();
+    return count ?? -1;
   }
 
-  async uncount() {
+  uncount() {
     return this._counter.decr();
   }
 
   async total() {
-    return this._counter.count();
+    const total = await this._counter.count();
+    return total ?? -1;
   }
 }
 
@@ -134,25 +137,31 @@ export default class Concierge {
   private _ticketProcessor: TicketCounter;
   private _invitations: TimeoutQueue; 
   private _freeCapacityBuffer: number = 0;
+  private _servingTransaction: TransactionalStore; 
 
   private capacity: number;
   private invitationTimeout: number;
+  private options:IConciergeOptions; 
 
   constructor(options: IConciergeOptions) {
     const queueName = "queue";
     const invitationQueueName = "invitation_queue";
+    this.options = options;
     this.capacity = options.servingCapacity;
     const store = options.redisClient ? new RedisStore(options.redisClient, queueName) : new MemoryStore();
+    this._servingTransaction = store as TransactionalStore;
     const queryStore = options.redisClient ? new RedisQueryStore(options.redisClient, queueName) : new MemoryQueryStore();
     const invitationStore = options.redisClient ? new RedisStore(options.redisClient, invitationQueueName) : new MemoryStore();
     const invitationQueryStore = options.redisClient ? new RedisQueryStore(options.redisClient, invitationQueueName) : new MemoryQueryStore();
+    const issuerCounter = options.redisClient ? RedisCounter("issuer", options.redisClient) : MemoryCounter();
+    const processorCounter = options.redisClient ? RedisCounter("processor", options.redisClient) : MemoryCounter();
     this.invitationTimeout = options.inivitationTimeout ?? (60 * 1000);
     this._invitations = new TimeoutQueue(this.invitationTimeout, new QueueStore(invitationStore, invitationQueryStore), () => {
       log.debug(`invitation has expired`); 
     });
     this._servingQueue = new ServingQueue(new QueueStore(store, queryStore));
-    this._ticketIssuer = new TicketCounter(Counter());
-    this._ticketProcessor = new TicketCounter(Counter());
+    this._ticketIssuer = new TicketCounter(Counter(issuerCounter));
+    this._ticketProcessor = new TicketCounter(Counter(processorCounter));
     log.info(`serving room running at capacity(${this.capacity})`);
     log.info(`serving room has invitation timeout(${this.invitationTimeout})`);
   }
@@ -170,10 +179,13 @@ export default class Concierge {
       qId = await this._ticketIssuer.count();
     }
 
-    console.log(`${qId} - ${await this._invitations.has(qId)}`);
+    this._servingTransaction.begin(); 
+    const queueLen = await this._servingQueue.len();
+    const invitationLen = await this._invitations.len();
     if(await this._invitations.has(qId)) {
       log.debug(`${queueId} accepted invitation`);
       cb.accept(qId, new Date().getTime());
+      this._invitations.remove(qId);
       this._servingQueue.push(qId);
     } else if((await this._servingQueue.len() + await this._invitations.len()) < this.capacity) {
       const ts = new Date().getTime();
@@ -183,6 +195,11 @@ export default class Concierge {
     } else {
       cb.wait(qId);
     }
+    this._servingTransaction.end((err) => {
+      if(err) {
+        log.error(err);
+      }
+    }); 
   }
 
   isInvited = (queueId: number) => {
@@ -190,10 +207,10 @@ export default class Concierge {
   }
 
   async servingAt() {
-    return await this._ticketProcessor.count();
+    return await this._ticketProcessor.total();
   }
 
   async runningAt() {
-    return await this._ticketIssuer.count();
+    return await this._ticketIssuer.total();
   }
 }

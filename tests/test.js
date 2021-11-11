@@ -1,6 +1,6 @@
 const redis = require('redis');
-const RedisStore = require('./store/RedisStore')
-const QueryStore = require('./store/RedisStore').QueryStore
+const RedisStore = require('../src/store/RedisStore')
+const QueryStore = require('../src/store/RedisStore').QueryStore
 const host = '192.168.64.8'
 const client = redis.createClient(6379, host);
 

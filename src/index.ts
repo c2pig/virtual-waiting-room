@@ -52,7 +52,6 @@ app.use('/', checkSession(concierge))
 app.get('/v1/stocks', getStockAvailability);
 
 app.delete('/v1/invitations', (req, res) => {
-  console.log('----- delete session -----');
   req.session.destroy(() => {
     res.json({});
   });

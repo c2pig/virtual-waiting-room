@@ -1,13 +1,5 @@
-import redis, { RedisClient } from 'redis';
-
 export interface Indexable {
   key: number;
-}
-
-export interface ICounterOperation {
-  incr: () => number | Promise<number>;
-  decr: () => number | Promise<number>;
-  count: () => number | Promise<number>;
 }
 
 export abstract class Store {
@@ -21,32 +13,7 @@ export abstract class QueryableStore {
   abstract len: () => number | Promise<number>;
 }
 
-export class CounterWrapper implements ICounterOperation {
-  
-  protected counter: ICounterOperation;
-
-  constructor(counter: ICounterOperation) {
-    this.counter = counter;
-  }
-
-  incr() {
-    return this.counter.incr(); 
-  }
-  decr() {
-    return this.counter.decr(); 
-  }
-  count() {
-    return this.counter.count(); 
-  }
+export interface TransactionalStore {
+  begin: () => void;
+  end: (cb?: (value: any) => void) => void;
 }
-
-const MemoryCounter = (): ICounterOperation => {
-  let counter = 0;
-  return {
-    incr: () => ++counter,
-    decr: () => --counter,
-    count: () =>counter 
-  }
-}
-
-export const Counter = ():ICounterOperation => (new CounterWrapper(MemoryCounter()))

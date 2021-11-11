@@ -13,6 +13,11 @@ export class QueryStore implements QueryableStore {
 
 export class MemoryStore implements Store {
 
+  begin() {
+  }
+
+  end() {
+  }
 
   set(value: Object) {
     queue.set(JSON.stringify(value), new Date().getTime());
