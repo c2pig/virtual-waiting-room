@@ -20,11 +20,10 @@ Turn on all level/module logging
 NODE_DEBUG=app.*
 ```
 
-### How to test from  local machine
+### How to test memory based virtual room 
 ##### Mock microsite domain
 * vi /etc/hosts
 * add:  `iphone.celcom.com.my   127.0.0.1` 
-
 
 ##### Start backend
 * yarn 
@@ -41,7 +40,14 @@ NODE_DEBUG=app.*
 * ./tests/pre-queue 7
 * browse http://iphone.celcom.com.my/
 
+### How to test Redis based virtual room (WIP for end-to-end testing)
+* Create Redis instance in VirtualBox (multipass)
+  * ./setups/init-redis.sh
+* Run test suite
+  * ts-node tests/test.ts
+* Download RedisInsight to monitor queue status
+
+
 
 ### Task:
-* Distributed Session Store
 * Session Exit
